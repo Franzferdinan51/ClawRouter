@@ -1,5 +1,18 @@
 # ClawRouter Development Plan for DuckBot
 
+## ⚠️ IMPORTANT NOTE - MODEL POLICY
+
+**Do NOT modify or replace existing BlockRun models!**
+
+- All existing models (OpenAI, Anthropic, Google, DeepSeek, xAI, Moonshot) must remain unchanged
+- LM Studio models should be added as NEW additions only
+- Never remove or alter the BlockRun model configurations
+- LM Studio models are ADDITIONAL local options for DuckBot
+
+**User Requirement:** "Don't use models they have set"
+
+---
+
 ## 🎯 Project Overview
 
 **Repository:** https://github.com/Franzferdinan51/ClawRouter.git (forked from BlockRunAI)
@@ -19,13 +32,15 @@
 ### 1️⃣ DuckBot-Specific Model Integration
 
 **Priority:** HIGH
-**Description:** Add LM Studio local models to the model list
+**Description:** Add LM Studio local models to model list
 
 **Why:** DuckBot uses local LM Studio models (qwen3-coder-next, gpt-oss-20b, etc.) for zero-cost inference
 
+**IMPORTANT:** All existing BlockRun models MUST remain unchanged. LM Studio models are NEW additions only.
+
 **Implementation:**
 ```typescript
-// Add to src/models.ts
+// Add to src/models.ts (APPEND to existing list, don't replace)
 {
   id: "local/lmstudio-qwen3-coder-next",
   name: "Qwen 3 Coder Next",
@@ -36,7 +51,7 @@
   maxOutput: 32768,
   reasoning: true,
   local: true,
-  baseUrl: "http://100.74.88.40:1234/v1",  // Configurable
+  baseUrl: "http://100.74.88.40:1234/v1",  // Configurable via env var: LMS_BASE_URL
 },
 {
   id: "local/lmstudio-gpt-oss-20b",
@@ -48,11 +63,13 @@
   maxOutput: 8192,
   reasoning: false,
   local: true,
-  baseUrl: "http://100.74.88.40:1234/v1",
+  baseUrl: "http://100.74.88.40:1234/v1",  // Uses LMS_BASE_URL env var
 },
 ```
 
 **Benefit:** Zero-cost routing for local models!
+
+**Note:** Existing BlockRun models (30+ models across 6 providers) are preserved unchanged.
 
 ---
 
@@ -100,7 +117,7 @@ async function routeWithHealthCheck(
   config: RoutingConfig,
   health: LMStudioHealth,
 ): Promise<Decision> {
-  const tier = classifyByRules(prompt, /* ... */).tier;
+  const tier = classifyByRules(prompt, /* ... */).tier;  
   
   // If local LM Studio is unhealthy, skip to next tier
   if (tier === 'SIMPLE' || tier === 'MEDIUM') {
@@ -131,7 +148,7 @@ async function routeWithHealthCheck(
 ```typescript
 // Add DuckBot-specific scoring to src/router/duckbot-rules.ts
 function scoreDuckPersonality(prompt: string): DimensionScore {
-  const duckKeywords = ['duck', 'quack', 'quack', 'waddle', 'webbed foot', 'feathers'];
+  const duckKeywords = ['duck', 'quack', 'waddle', 'webbed foot', 'feathers'];
   const helpfulKeywords = ['help', 'assist', 'guide', 'explain', 'how', 'what'];
   const directKeywords = ['just', 'directly', 'simply', 'precisely'];
   
@@ -186,7 +203,7 @@ export function trackRoute(decision: Decision): void {
     metrics.savings += decision.savings;
   }
   
-  metrics.modelUsage[decision.model] = (metrics.modelUsage[decision.model] || 0) + 1;
+  metrics.modelUsage[decision.model] = (metrics.modelUsage[decision.model] || 0) + 1;  
   
   // Log to OpenClaw
   console.log(`📊 Route: ${decision.model} | Tier: ${decision.tier} | Savings: ${((decision.savings || 0) * 100).toFixed(0)}%`);
@@ -323,7 +340,7 @@ function renderConfigUI(): string {
     <label>Fallback on degradation:</label>
     <select id="fallbackMode">
       <option value="cloud">Use cloud models</option>
-      <option value="claudode">Use Claude Code</option>
+      <option value="claudcode">Use Claude Code</option>
       <option value="glm">Use GLM 4.7 API</option>
     </select>
   </div>
@@ -360,8 +377,8 @@ function renderConfigUI(): string {
 
 ### Phase 1: Critical (Week 1)
 1. ✅ Clone and explore repository
-2. ⏳ Add LM Studio local models
-3. ⏳ Add crypto-mining aware routing
+2. ⏳ Add LM Studio local models (preserve existing models!)
+3. ⏳ Add crypto-mining aware routing (health checks + fallback)
 4. ⏳ Test with DuckBot avatar system
 5. ⏳ Commit initial changes
 
@@ -452,3 +469,4 @@ const defaultLLMRouter = '@blockrun/clawrouter';
 **Created:** 2026-02-06
 **Author:** DuckBot Autonomous Development 🦆
 **Status:** 📋 Plan ready for implementation
+**⚠️ MODEL POLICY: All existing BlockRun models preserved, LM Studio added as NEW options only**
