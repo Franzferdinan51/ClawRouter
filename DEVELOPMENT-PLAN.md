@@ -29,6 +29,67 @@
 
 ## 📋 Potential Improvements for DuckBot Use Case
 
+### ⚠️ CRITICAL POLICY: BLOCKRUN MODELS PROHIBITED
+
+**User Requirement:** "Don't use BlockRun Models please"
+
+**What This Means:**
+- NO BlockRun models will be used or routed to
+- All BlockRun models (OpenAI, Anthropic, Google, DeepSeek, xAI, Moonshot) must be completely excluded
+- ONLY LM Studio local models will be used
+- Routing logic will skip/de-prioritize any BlockRun tier selection
+- This is a hard requirement from user
+
+**Implementation Requirements:**
+- Modify routing logic to check for BlockRun model IDs before tier assignment
+- If a BlockRun model is detected, skip to next available LM Studio model
+- Ensure DuckBot personality rules never suggest BlockRun models
+- Add warning system if BlockRun models are accidentally routed to
+
+**Model Selection Logic (Modified):**
+```typescript
+// BlockRun models to skip
+const BLOCKRUN_MODEL_IDS = new Set([
+  'openai/gpt-5.2', 'openai/gpt-5.2-pro',
+  'openai/gpt-5-mini',
+  'openai/gpt-4.1',
+  'openai/gpt-4o',
+  'openai/claude-sonnet-4', 'openai/claude-opus-4',
+  'google/gemini-2.5-pro', 'google/gemini-2.5-flash',
+  'deepseek-chat', 'deepseek-reasoner',
+  'xai/grok', 'moonshot/kimi-k2.5',
+]);
+
+function skipBlockRunModels(modelId: string): boolean {
+  return BLOCKRUN_MODEL_IDS.has(modelId);
+}
+
+// Modified route function
+export function route(prompt: string, config: ScoringConfig): Decision {
+  const tier = classifyByRules(prompt, /* ... */).tier;
+  
+  // HARD REQUIREMENT: Skip BlockRun models entirely
+  if (skipBlockRunModels(tier.model)) {
+    console.log('🚫 Skipping BlockRun model:', tier.model);
+    console.log('🔄 Fallback to next LM Studio model');
+    // Fallback logic to find next available LM Studio model
+    return routeToNextLMStudioModel(config);
+  }
+  
+  // Normal routing for LM Studio models
+  return routeToTier(tier, config);
+}
+```
+
+**LM Studio Models Only (Approved):**
+- ✅ local/lmstudio-qwen3-coder-next (Qwen 3 Coder Next)
+- ✅ local/lmstudio-gpt-oss-20b (GPT-OSS 20B)
+- ✅ local/lmstudio-jan-v2-vl-max_moe (Jan v2 VL Max - multimodal)
+- ✅ local/lmstudio-jan-v3-4b-base-instruct (Jan v3 4B)
+- ✅ local/lmstudio-gpt-oss-20b (GPT-OSS 20B - duplicate entry, will use only one)
+
+---
+
 ### 1️⃣ DuckBot-Specific Model Integration
 
 **Priority:** HIGH
