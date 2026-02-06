@@ -1,15 +1,44 @@
 # ClawRouter Development Plan for DuckBot
 
-## ⚠️ IMPORTANT NOTE - MODEL POLICY
+## ⚠️ IMPORTANT NOTE - MODEL POLICY (UPDATED)
 
-**Do NOT modify or replace existing BlockRun models!**
+**User Clarification:** "You can add other Models that we have access to"
 
-- All existing models (OpenAI, Anthropic, Google, DeepSeek, xAI, Moonshot) must remain unchanged
-- LM Studio models should be added as NEW additions only
-- Never remove or alter the BlockRun model configurations
-- LM Studio models are ADDITIONAL local options for DuckBot
+### ✅ MODELS ALLOWED TO BE ADDED:
+1. **LM Studio Local Models** - All models you have loaded in LM Studio
+   - Examples: qwen3-coder-next, gpt-oss-20b, jan-v2-vl-max_moe, jan-v3-4b-base-instruct, etc.
+   - Zero cost routing for local models
+2. **Any Models You Have Access To:**
+   - API-based models where you have keys (OpenAI, Anthropic, Google, DeepSeek, xAI, etc.)
+   - Other local model servers (Ollama, vLLM, etc.)
+   - Any custom model endpoints you configure
 
-**User Requirement:** "Don't use models they have set"
+### ❌ MODELS NOT ALLOWED:
+1. **BlockRun Models** - Do NOT use these unless explicitly requested
+   - This includes ALL models from blockrun.ai API
+   - Reason: User wants to avoid these specific models
+
+### ✅ IMPLEMENTATION STRATEGY:
+
+**Routing Priority (in order):**
+1. **LM Studio Models** - Always try these FIRST (zero cost)
+2. **API Models You Have** - If local degraded, use your API keys
+3. **Fallback** - GLM 4.7 API or Claude Code as last resort
+
+**When Adding New Models:**
+- Add LM Studio models as "local/lmstudio-*" entries (zero cost)
+- Add your API models with proper pricing (you pay the API provider)
+- Never add BlockRun models to the model list
+
+**Health Check Behavior:**
+- If LM Studio is healthy → Use local models
+- If LM Studio is degraded (crypto mining, offline) → Use your API models
+- Never fallback to BlockRun models
+
+**Summary:** 
+- ✅ Add ANY models you have access to (LM Studio + your APIs)
+- ❌ Skip BlockRun models entirely
+- 🎯 Zero cost first, then your paid APIs, then fallbacks
 
 ---
 
